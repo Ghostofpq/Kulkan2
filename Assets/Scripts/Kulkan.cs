@@ -29,7 +29,7 @@ public class Kulkan : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetButtonDown("Jump") && grounded)
+        if (Input.GetButtonDown("Jump") && !grounded)
         {
             jump = true;
         }
@@ -37,22 +37,22 @@ public class Kulkan : MonoBehaviour
 
     void FixedUpdate()
     {
-        float h = Input.GetAxis("Horizontal");
         if (!grounded)
-            h = 0;
+        {
+            float h = Input.GetAxis("Horizontal");
+            anim.SetFloat("Speed", Mathf.Abs(h));
 
-        anim.SetFloat("Speed", Mathf.Abs(h));
+            if (h * rb2d.velocity.x < maxSpeed)
+                rb2d.AddForce(Vector2.right * h * moveForce);
 
-        if (h * rb2d.velocity.x < maxSpeed)
-            rb2d.AddForce(Vector2.right * h * moveForce);
+            if (Mathf.Abs(rb2d.velocity.x) > maxSpeed)
+                rb2d.velocity = new Vector2(Mathf.Sign(rb2d.velocity.x) * maxSpeed, rb2d.velocity.y);
 
-        if (Mathf.Abs(rb2d.velocity.x) > maxSpeed)
-            rb2d.velocity = new Vector2(Mathf.Sign(rb2d.velocity.x) * maxSpeed, rb2d.velocity.y);
-
-        if (h > 0 && !facingRight)
-            Flip();
-        else if (h < 0 && facingRight)
-            Flip();
+            if (h > 0 && !facingRight)
+                Flip();
+            else if (h < 0 && facingRight)
+                Flip();
+        }
 
         if (jump)
         {
@@ -74,7 +74,7 @@ public class Kulkan : MonoBehaviour
     {
         if (collider.gameObject.layer.Equals(layerFloor))
         {
-            grounded = true;
+            grounded = false;
         }
     }
 
@@ -82,7 +82,7 @@ public class Kulkan : MonoBehaviour
     {
         if (collider.gameObject.layer.Equals(layerFloor))
         {
-            grounded = false;
+            grounded = true;
         }
     }
 
