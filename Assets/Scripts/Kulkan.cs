@@ -3,130 +3,78 @@ using System.Collections;
 
 public class Kulkan : MonoBehaviour
 {
-    Animator anim;
-    Rigidbody2D body;
+    [HideInInspector]
+    public bool facingRight = true;
+    [HideInInspector]
+    public bool jump = false;
+    [HideInInspector]
+    private bool grounded;
 
-    private bool on_the_floor;
-    public float run_speed;
-    public float walk_speed;
-    public State state;
-    private float joystickSensitivity;
+    public float moveForce = 365f;
+    public float maxSpeed = 15f;
+    public float jumpForce = 1500f;
+
+    private Animator anim;
+    private Rigidbody2D rb2d;
     private int layerFloor;
-    public bool direction;
 
     // Use this for initialization
-    void Start()
+    void Awake()
     {
-        on_the_floor = false;
-        direction = true;
-        joystickSensitivity = 0.2f;
         layerFloor = LayerMask.NameToLayer("Floor");
+        anim = GetComponent<Animator>();
+        rb2d = GetComponent<Rigidbody2D>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (direction)
+        if (Input.GetButtonDown("Jump") && grounded)
         {
-            transform.localRotation = Quaternion.Euler(0, 0, 0);
-        }
-        else
-        {
-            transform.localRotation = Quaternion.Euler(0, 180, 0);
+            jump = true;
         }
     }
 
-
-    public void run(bool direction)
+    void FixedUpdate()
     {
-        if (on_the_floor)
+        float h = Input.GetAxis("Horizontal");
+        if (!grounded)
+            h = 0;
+
+        anim.SetFloat("Speed", Mathf.Abs(h));
+
+        if (h * rb2d.velocity.x < maxSpeed)
+            rb2d.AddForce(Vector2.right * h * moveForce);
+
+        if (Mathf.Abs(rb2d.velocity.x) > maxSpeed)
+            rb2d.velocity = new Vector2(Mathf.Sign(rb2d.velocity.x) * maxSpeed, rb2d.velocity.y);
+
+        if (h > 0 && !facingRight)
+            Flip();
+        else if (h < 0 && facingRight)
+            Flip();
+
+        if (jump)
         {
-            if (direction)
-            {
-                setHorizontalSpeed(run_speed);
-            }
-            else
-            {
-                setHorizontalSpeed(-run_speed);
-            }
-            this.direction = direction;
-        }
-        this.state = State.RUNNING;
-    }
-
-    public void walk(bool direction)
-    {
-        setHorizontalSpeed(direction,walk_speed);       
-        this.direction = direction;
-        this.state = State.WALKING;
-    }
-
-    public void jump()
-    {
-        if (on_the_floor)
-        {
-            switch (state)
-            {
-                case State.RUNNING:
-                    setVerticalSpeed(40);
-                    setHorizontalSpeed(direction, run_speed);
-                    break;
-                case State.WALKING:
-                    setVerticalSpeed(40);
-                    setHorizontalSpeed(direction, walk_speed);
-                    walk(direction);
-                    break;
-                case State.IDLE:
-                default:
-                    setVerticalSpeed(40);
-                    break;
-            }
+            anim.SetTrigger("Jump");
+            rb2d.AddForce(new Vector2(0f, jumpForce));
+            jump = false;
         }
     }
 
-    public void stop()
+    void Flip()
     {
-        GetComponent<Rigidbody2D>().velocity = new Vector2(0, GetComponent<Rigidbody2D>().velocity.y);
-        this.state = State.IDLE;
-    }
-
-    private float getHorizontalSpeed()
-    {
-        return GetComponent<Rigidbody2D>().velocity.x;
-    }
-
-    private float getVerticalSpeed()
-    {
-        return GetComponent<Rigidbody2D>().velocity.y;
-    }
-
-    private void setHorizontalSpeed(bool direction, float speed)
-    {
-        if (direction)
-        {
-            setHorizontalSpeed(speed);
-        }
-        else
-        {
-            setHorizontalSpeed(-speed);
-        }
-    }
-
-    private void setHorizontalSpeed(float speed)
-    {
-        GetComponent<Rigidbody2D>().velocity = new Vector2(speed, GetComponent<Rigidbody2D>().velocity.y);
-    }
-
-    private void setVerticalSpeed(float speed)
-    {
-        GetComponent<Rigidbody2D>().velocity = new Vector2(GetComponent<Rigidbody2D>().velocity.x, speed);
+        facingRight = !facingRight;
+        Vector3 theScale = transform.localScale;
+        theScale.x *= -1;
+        transform.localScale = theScale;
     }
 
     void OnTriggerStay2D(Collider2D collider)
     {
         if (collider.gameObject.layer.Equals(layerFloor))
         {
-            on_the_floor = true;
+            grounded = true;
         }
     }
 
@@ -134,7 +82,7 @@ public class Kulkan : MonoBehaviour
     {
         if (collider.gameObject.layer.Equals(layerFloor))
         {
-            on_the_floor = false;
+            grounded = false;
         }
     }
 

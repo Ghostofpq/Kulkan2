@@ -32,7 +32,7 @@ public class CameraManager : MonoBehaviour
     void UpdateFollow(float deltaTime)
     {
         float offset = Camera.main.transform.position.x - kulkan.transform.position.x;
-        if (kulkan.direction)
+        if (kulkan.facingRight)
         {
             if (Mathf.Abs(offset) < maxFollowOffset || offset < 0)
             {
