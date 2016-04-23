@@ -8,7 +8,15 @@ public class Kulkan : MonoBehaviour
     [HideInInspector]
     public bool jump = false;
     [HideInInspector]
-    private bool grounded;
+    public bool grounded;
+
+
+    [HideInInspector]
+    public int maxHP = 100;
+    [HideInInspector]
+    public int currentHP = 100;
+
+
 
     public float moveForce = 365f;
     public float maxSpeed = 15f;
